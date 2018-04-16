@@ -46,16 +46,31 @@ public:
     Drone();
     ~Drone();
 
+    void linear_x(double persentage_of_cmd_vel);
+    void linear_y(double persentage_of_cmd_vel);
+    void linear_z(double persentage_of_cmd_vel);
+    void yaw_rotate(double persentage_of_cmd_vel);
+
     void reset();
     void take_off();
     void land();
     void hover();
-  
+
+    void calculate_x_coordinations();
+
+    Navdata get_navdata();
+
+    Position get_position();
+    Euler_angle get_euler_angles();
+
 private:
 
     int sign(double value);
 
     Euler_angle to_euler_angle();
+
+    void update_odometry();
+    void get_odometry(const nav_msgs::Odometry & msg);
 
     ros::NodeHandle nh;
     ros::Subscriber gr_sub;
