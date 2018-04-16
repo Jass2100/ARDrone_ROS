@@ -1,133 +1,91 @@
-#include "drone.h"
+#include <ros/ros.h>
+#include <ardrone_autonomy/Navdata.h>
+#include <geometry_msgs/Twist.h>
+#include <std_msgs/Empty.h>
+#include <std_msgs/String.h>
+#include <string>
+#include <iostream>
 
-const char cmd_vel_topic[] = "/cmd_vel";
-//const char odometry_topic[] = "/ardrone/odometry"; // ARDrone
-const char odometry_topic[] = "/ground_truth/state"; // Gazebo
+#include <math.h>
+#include <cmath>
+#include <stdlib.h>
 
+#include <nav_msgs/Odometry.h>
+#include <iomanip>
+#include <geometry_msgs/Point.h>
+#include <sensor_msgs/Imu.h>
+#include <ros/callback_queue.h>
+#include "ardrone_autonomy/Navdata.h"
 
-Drone::Drone() {
+#include "navdata.h"
+#include <ctime>
 
-        std::cout << "initialization drone control class" << std::endl;
-        update_odometry();
-        update_odometry();
-        vel_pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 10);
-        Navdata navdata;
-		navdata = get_navdata();
+#ifndef DRONE_H_
+#define DRONE_H_
 
-		std::cout << "" << std::endl;
-		std::cout << "ARDrone information" << std::endl;
-		std::cout << "________________________" << std::endl;
-		std::cout << "" << std::endl;
-		std::cout << "Battery: " << navdata.batteryPercent << "%" << std::endl;
-		std::cout << "State: " << navdata.state << std::endl;
-		std::cout << "________________________" << std::endl;
-		std::cout << "" << std::endl;
+class Drone {
 
-}
+public:
 
+    struct Euler_angle {
 
-Drone::~Drone() {
+        double xAxis, yAxis, yaw;
 
-    if(ros::isStarted()) {
-        std::cout<< "" << std::endl; // for soul xD
-        ROS_INFO_STREAM("closing ROS...");
-        ros::shutdown(); // explicitly needed since we use ros::start();
-        ros::waitForShutdown();
-    }
-    wait();
+    };
 
-}
+    struct Position {
 
+        double x_coord, y_coord, z_coord;
 
-int Drone::sign(double value) {
+    };
 
-    return value/std::abs(value);
+    struct Navdata navdata;
 
-}
+public:
 
+    Drone();
+    ~Drone();
 
-void Drone::reset() {
+    void linear_x(double persentage_of_cmd_vel);
+    void linear_y(double persentage_of_cmd_vel);
+    void linear_z(double persentage_of_cmd_vel);
+    void yaw_rotate(double persentage_of_cmd_vel);
 
-    ROS_INFO_STREAM("reset");
+    void reset();
+    void take_off();
+    void land();
+    void hover();
 
-    vel_pub = nh.advertise<std_msgs::Empty>("/ardrone/reset", 1000, true);
-    while(vel_pub.getNumSubscribers() < 1) {
-        sleep(0.01);
-    }
-    std_msgs::Empty msg;
-    vel_pub.publish(msg);
+    double gyro_calibration();
 
-}
+    void test_reach_point(double persentage_of_linear, double persentage_of_angular);
+    void xy_linear_velocity_control(double x_velocity, double y_velocity);
 
+    void gyro_test();
 
-void Drone::take_off() {
+    void calculate_x_coordinations();
 
-    ROS_INFO_STREAM("take_off");
+    Navdata get_navdata();
 
-    //hover();
+    Position get_position();
+    Euler_angle get_euler_angles();
 
-    vel_pub = nh.advertise<std_msgs::Empty>("/ardrone/takeoff", 1000, true);
-    while(vel_pub.getNumSubscribers() < 1) {
-        sleep(0.01);
-    }
-    std_msgs::Empty msg;
-    vel_pub.publish(msg);
+private:
 
-}
+    int sign(double value);
 
+    Euler_angle to_euler_angle();
 
-void Drone::land() {
+    void update_odometry();
+    void get_odometry(const nav_msgs::Odometry & msg);
 
-    ROS_INFO_STREAM("land");
+    ros::NodeHandle nh;
+    ros::Subscriber gr_sub;
+    ros::Publisher vel_pub;
 
-    vel_pub = nh.advertise<std_msgs::Empty>("/ardrone/land", 1000, true);
-    while(vel_pub.getNumSubscribers() < 1) {
-        sleep(0.01);
-    }
-    std_msgs::Empty msg;
-    vel_pub.publish(msg);
+    double x, y, z, w;
+    double XCurrentCoord, YCurrentCoord, ZCurrentCoord;
 
-}
+};
 
-
-void Drone::hover() {
-
-    ROS_INFO_STREAM("hover");
-
-    vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000, true);
-    geometry_msgs::Twist velocity;
-
-    velocity.linear.x = 0;
-    velocity.linear.y = 0;
-    velocity.linear.z = 0;
-    velocity.angular.x = 0;
-    velocity.angular.y = 0;
-    velocity.angular.z = 0;
-
-    vel_pub.publish(velocity);
-
-}
-
-
-void Drone::update_odometry() {
-
-    gr_sub = nh.subscribe(odometry_topic, 1000, &Drone::get_odometry, this);
-    ros::getGlobalCallbackQueue()->callAvailable(ros::WallDuration(0.1));
-
-}
-
-
-void Drone::get_odometry(const nav_msgs::Odometry &msg){
-
-    x = msg.pose.pose.orientation.x;
-    y = msg.pose.pose.orientation.y;
-    z = msg.pose.pose.orientation.z;
-    w = msg.pose.pose.orientation.w;
-
-    XCurrentCoord = msg.pose.pose.position.x;
-    YCurrentCoord = msg.pose.pose.position.y;
-    ZCurrentCoord = msg.pose.pose.position.z;
-
-}
-
-}
+#endif /* DRONE_H_ */
