@@ -56,13 +56,6 @@ public:
     void land();
     void hover();
 
-    double gyro_calibration();
-
-    void test_reach_point(double persentage_of_linear, double persentage_of_angular);
-    void xy_linear_velocity_control(double x_velocity, double y_velocity);
-
-    void gyro_test();
-
     void calculate_x_coordinations();
 
     Navdata get_navdata();
