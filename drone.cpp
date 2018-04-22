@@ -1,27 +1,16 @@
 #include "drone.h"
 
 const char cmd_vel_topic[] = "/cmd_vel";
-//const char odometry_topic[] = "/ardrone/odometry"; // ARDrone
-const char odometry_topic[] = "/ground_truth/state"; //Gazebo
+const char odometry_topic[] = "/ardrone/odometry"; // ARDrone
+//const char odometry_topic[] = "/ground_truth/state"; //Gazebo
 
 
 Drone::Drone() {
 
-        std::cout << "initialization drone control class" << std::endl;
-        update_odometry();
-        update_odometry();
+        std::cout << "init drone" << std::endl;
+        upDateOdometry();
+        upDateOdometry();
         vel_pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 10);
-        Navdata navdata;
-		navdata = get_navdata();
-
-		std::cout << "" << std::endl;
-		std::cout << "ARDrone information" << std::endl;
-		std::cout << "________________________" << std::endl;
-		std::cout << "" << std::endl;
-		std::cout << "Battery: " << navdata.batteryPercent << "%" << std::endl;
-		std::cout << "State: " << navdata.state << std::endl;
-		std::cout << "________________________" << std::endl;
-		std::cout << "" << std::endl;
 
 }
 
@@ -30,7 +19,7 @@ Drone::~Drone() {
 
     if(ros::isStarted()) {
         std::cout<< "" << std::endl; // for soul xD
-        ROS_INFO_STREAM("closing ROS...");
+        ROS_INFO_STREAM("The application was closed --> closing ROS");
         ros::shutdown(); // explicitly needed since we use ros::start();
         ros::waitForShutdown();
     }
@@ -39,22 +28,9 @@ Drone::~Drone() {
 }
 
 
-void Drone::yaw_rotate(double persentage_of_cmd_vel) {
+void Drone::forward(double persentage_of_cmd_vel) {
 
-    vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000, true);
-    while(vel_pub.getNumSubscribers() < 1) {
-        sleep(0.01);
-    }
-    geometry_msgs::Twist msg;
-    msg.angular.z = 1*persentage_of_cmd_vel/100;
-    vel_pub.publish(msg);
-
-}
-
-
-void Drone::linear_x(double persentage_of_cmd_vel) {
-
-    //ROS_INFO_STREAM("linear_x: " << persentage_of_cmd_vel << "%");
+    ROS_INFO_STREAM("forward: " << persentage_of_cmd_vel << "%");
 
     vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000,true);
     while(vel_pub.getNumSubscribers() < 1) {
@@ -67,9 +43,23 @@ void Drone::linear_x(double persentage_of_cmd_vel) {
 }
 
 
-void Drone::linear_y(double persentage_of_cmd_vel) {
+void Drone::backward(double persentage_of_cmd_vel) {
 
-    //ROS_INFO_STREAM("linear_y: " << persentage_of_cmd_vel << "%");
+    ROS_INFO_STREAM("backward: " << persentage_of_cmd_vel << "%");
+
+    vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000, true);
+    while(vel_pub.getNumSubscribers() < 1) {
+        sleep(0.01);
+    }
+    geometry_msgs::Twist msg;
+    msg.linear.x = -1*persentage_of_cmd_vel/100;
+    vel_pub.publish(msg);
+
+}
+
+void Drone::left(double persentage_of_cmd_vel) {
+
+    ROS_INFO_STREAM("left: " << persentage_of_cmd_vel << "%");
 
     vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000, true);
     while(vel_pub.getNumSubscribers() < 1) {
@@ -81,6 +71,24 @@ void Drone::linear_y(double persentage_of_cmd_vel) {
 
 }
 
+
+void Drone::right(double persentage_of_cmd_vel) {
+
+    ROS_INFO_STREAM("right: " << persentage_of_cmd_vel << "%");
+
+    vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000, true);
+    while(vel_pub.getNumSubscribers() < 1) {
+        sleep(0.01);
+    }
+    geometry_msgs::Twist msg;
+
+    msg.linear.y = -1*persentage_of_cmd_vel/100;
+
+    vel_pub.publish(msg);
+
+}
+
+
 int Drone::sign(double value) {
 
     return value/std::abs(value);
@@ -88,9 +96,170 @@ int Drone::sign(double value) {
 }
 
 
-void Drone::linear_z(double persentage_of_cmd_vel) {
+void Drone::angularRotate(double angular) {
 
-    ROS_INFO_STREAM("linear_z: " << persentage_of_cmd_vel << "%");
+    vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000, true);
+    while(vel_pub.getNumSubscribers() < 1) {
+        sleep(0.01);
+    }
+    geometry_msgs::Twist msg;
+
+    double currentAngular = getEulerAngles().zAxis;
+    double oldAngular = getEulerAngles().zAxis;
+    double error = 0;
+    double pwm = 0;
+    double Kp = 0.02;
+
+    double error_x = 0 - getEulerAngles().xAxis;
+    double error_y = 0 - getEulerAngles().yAxis;
+
+    while(abs(angular-error) > 5) {
+
+        error_x = 0 - getEulerAngles().xAxis;
+        error_y = 0 - getEulerAngles().yAxis;
+
+
+        currentAngular = getEulerAngles().zAxis;
+        error = currentAngular - oldAngular;
+        std::cout << pwm << std::endl;
+
+        pwm = (angular - error)*Kp;
+
+        if(std::abs(pwm) > 1) pwm = sign(pwm)*1;
+        msg.angular.z = pwm;
+        msg.angular.x = 0;
+        msg.angular.y = 0;
+        msg.linear.x = 0;
+        msg.linear.y = 0;
+        msg.linear.z = 0;
+        vel_pub.publish(msg);
+
+        if (std::abs(error_x) > 0.3) {
+
+            if(std::abs(error_x) > 0.15) error_x = sign(error_x)*0.15;
+            msg.angular.z = 0;
+            msg.angular.x = error_x;
+            msg.angular.y = 0;
+            msg.linear.x = 0;
+            msg.linear.y = 0;
+            msg.linear.z = 0;
+            //std::cout << error_x << std::endl;
+
+        }
+
+        if (std::abs(error_y) > 0.3) {
+
+            if(std::abs(error_y) > 0.15) error_y = sign(error_y)*0.15;
+            msg.angular.y = error_y;
+            msg.angular.z = 0;
+            msg.angular.x = 0;
+            msg.linear.x = 0;
+            msg.linear.y = 0;
+            msg.linear.z = 0;
+            //std::cout << "y: "<< error_y << std::endl;
+        }
+
+    }
+
+    msg.angular.z = 0;
+    msg.angular.x = 0;
+    msg.angular.y = 0;
+    msg.linear.x = 0;
+    msg.linear.y = 0;
+    msg.linear.z = 0;
+
+    vel_pub.publish(msg);
+
+}
+
+
+void Drone::setAngular(char axis, double angular) {
+
+    if (axis == 'z') {
+
+        vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000, true);
+        while(vel_pub.getNumSubscribers() < 1) {
+            sleep(0.01);
+        }
+        geometry_msgs::Twist msg;
+
+        double currentAngular = getEulerAngles().zAxis;
+        std::cout << "Current angle(start): " << currentAngular << std::endl;
+        double error = angular - currentAngular;
+        double pwm = 0;
+        double Kp = 0.5;
+
+        double error_x = 0 - getEulerAngles().xAxis;
+        double error_y = 0 - getEulerAngles().yAxis;
+
+        while(abs(error) > 5) {
+
+            error_x = 0 - getEulerAngles().xAxis;
+            error_y = 0 - getEulerAngles().yAxis;
+
+
+            currentAngular = getEulerAngles().zAxis;
+            error = angular - currentAngular;
+
+            if (std::abs(error) > 180) error = error - sign(error) * 360;
+
+            pwm = error*Kp;
+
+            if(std::abs(pwm) > 1) pwm = sign(pwm)*1;
+            //std::cout << "z error:" << error << "   Current angle: " << currentAngular << "   pwm: " << pwm << std::endl;
+            msg.angular.z = pwm;
+            msg.angular.x = 0;
+            msg.angular.y = 0;
+            msg.linear.x = 0;
+            msg.linear.y = 0;
+            msg.linear.z = 0;
+            vel_pub.publish(msg);
+
+            if (std::abs(error_x) > 0.3) {
+
+                if(std::abs(error_x) > 0.01) error_x = sign(error_x)*0.01;
+                msg.angular.z = 0;
+                msg.angular.x = error_x;
+                msg.angular.y = 0;
+                msg.linear.x = 0;
+                msg.linear.y = 0;
+                msg.linear.z = 0;
+                //std::cout << error_x << std::endl;
+
+            }
+
+            if (std::abs(error_y) > 0.3) {
+
+                if(std::abs(error_y) > 0.01) error_y = sign(error_y)*0.01;
+                msg.angular.y = error_y;
+                msg.angular.z = 0;
+                msg.angular.x = 0;
+                msg.linear.x = 0;
+                msg.linear.y = 0;
+                msg.linear.z = 0;
+                //std::cout << "y: "<< error_y << std::endl;
+            }
+
+            std::cout << error_x << "  " << error_y << std::endl;
+        }
+
+        msg.angular.z = 0;
+        msg.angular.x = 0;
+        msg.angular.y = 0;
+        msg.linear.x = 0;
+        msg.linear.y = 0;
+        msg.linear.z = 0;
+
+        vel_pub.publish(msg);
+
+    }
+
+}
+
+
+void Drone::heightSpeed(double persentage_of_cmd_vel) {
+
+    ROS_INFO_STREAM("hight speed: " << persentage_of_cmd_vel << "%");
 
     vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000, true);
     while(vel_pub.getNumSubscribers() < 1) {
@@ -101,6 +270,52 @@ void Drone::linear_z(double persentage_of_cmd_vel) {
     msg.linear.z = persentage_of_cmd_vel/100;
 
     vel_pub.publish(msg);
+
+}
+
+
+void Drone::angular(char axis, double persentage_of_cmd_vel) {
+
+    if (axis == 'x') {
+
+        vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000, true);
+        while(vel_pub.getNumSubscribers() < 1) {
+            sleep(0.01);
+        }
+        geometry_msgs::Twist msg;
+
+        msg.angular.x = persentage_of_cmd_vel/100;
+        vel_pub.publish(msg);
+
+    }
+
+    if (axis == 'y') {
+
+        vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000, true);
+        while(vel_pub.getNumSubscribers() < 1) {
+            sleep(0.01);
+        }
+        geometry_msgs::Twist msg;
+
+        msg.angular.y = persentage_of_cmd_vel/100;
+        vel_pub.publish(msg);
+
+    }
+
+    if (axis == 'z') {
+
+        ROS_INFO_STREAM("z angular: " << persentage_of_cmd_vel << "%");
+
+        vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000, true);
+        while(vel_pub.getNumSubscribers() < 1) {
+            sleep(0.01);
+        }
+        geometry_msgs::Twist msg;
+
+        msg.angular.z = persentage_of_cmd_vel/100;
+        vel_pub.publish(msg);
+
+    }
 
 }
 
@@ -122,8 +337,6 @@ void Drone::reset() {
 void Drone::take_off() {
 
     ROS_INFO_STREAM("take_off");
-
-    //hover();
 
     vel_pub = nh.advertise<std_msgs::Empty>("/ardrone/takeoff", 1000, true);
     while(vel_pub.getNumSubscribers() < 1) {
@@ -168,7 +381,7 @@ void Drone::hover() {
 }
 
 
-Drone::Euler_angle Drone::to_euler_angle() {
+Drone::EulerAngle Drone::toEulerAngle() {
 
     // roll (x-axis rotation)
     double sinr = +2.0 * (w * x + y * z);
@@ -195,31 +408,31 @@ Drone::Euler_angle Drone::to_euler_angle() {
     }
 
 
-    Drone::Euler_angle axis;
+    Drone::EulerAngle axis;
     axis.xAxis = roll;
     axis.yAxis = pitch;
-    axis.yaw = yaw;
+    axis.zAxis = yaw;
 
     return axis;
 
 }
 
 
-Drone::Euler_angle Drone::get_euler_angles() {
+Drone::EulerAngle Drone::getEulerAngles() {
 
-    update_odometry();
+    upDateOdometry();
 
-    Drone::Euler_angle axis;
-    axis = to_euler_angle();
+    Drone::EulerAngle axis;
+    axis = toEulerAngle();
 
     return axis;
 
 }
 
 
-Drone::Position Drone::get_position() {
+Drone::Position Drone::getPosition() {
 
-    update_odometry();
+    upDateOdometry();
 
     Drone::Position position;
     position.x_coord = XCurrentCoord;
@@ -231,15 +444,14 @@ Drone::Position Drone::get_position() {
 }
 
 
-void Drone::update_odometry() {
+void Drone::upDateOdometry() {
 
-    gr_sub = nh.subscribe(odometry_topic, 1000, &Drone::get_odometry, this);
+    gr_sub = nh.subscribe(odometry_topic, 1000, &Drone::goal_callback, this);
     ros::getGlobalCallbackQueue()->callAvailable(ros::WallDuration(0.1));
 
 }
 
-
-void Drone::get_odometry(const nav_msgs::Odometry &msg){
+void Drone::goal_callback(const nav_msgs::Odometry &msg){
 
     x = msg.pose.pose.orientation.x;
     y = msg.pose.pose.orientation.y;
@@ -252,5 +464,27 @@ void Drone::get_odometry(const nav_msgs::Odometry &msg){
 
 }
 
+void Drone::setLinearVelocity(double xpwm, double ypwm, double zpwm) {
+
+    vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000, true);
+    geometry_msgs::Twist velocity;
+
+    velocity.linear.x = xpwm;
+    velocity.linear.y = ypwm;
+    velocity.linear.z = zpwm;
+
+    vel_pub.publish(velocity);
+
+}
+
+
+void Drone::setAngularVelocity(double z) {
+
+    vel_pub = nh.advertise<geometry_msgs::Twist>(cmd_vel_topic, 1000, true);
+    geometry_msgs::Twist velocity;
+
+    velocity.angular.z = z;
+
+    vel_pub.publish(velocity);
 
 }
