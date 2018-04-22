@@ -15,10 +15,6 @@
 #include <geometry_msgs/Point.h>
 #include <sensor_msgs/Imu.h>
 #include <ros/callback_queue.h>
-#include "ardrone_autonomy/Navdata.h"
-
-#include "navdata.h"
-#include <ctime>
 
 #ifndef DRONE_H_
 #define DRONE_H_
@@ -27,9 +23,9 @@ class Drone {
 
 public:
 
-    struct Euler_angle {
+    struct EulerAngle {
 
-        double xAxis, yAxis, yaw;
+        double xAxis, yAxis, zAxis;
 
     };
 
@@ -39,38 +35,38 @@ public:
 
     };
 
-    struct Navdata navdata;
-
 public:
 
     Drone();
     ~Drone();
 
-    void linear_x(double persentage_of_cmd_vel);
-    void linear_y(double persentage_of_cmd_vel);
-    void linear_z(double persentage_of_cmd_vel);
-    void yaw_rotate(double persentage_of_cmd_vel);
 
+    void angularRotate(double angular);
+    void forward(double persentage_of_cmd_vel);
+    void backward(double persentage_of_cmd_vel);
+    void left(double persentage_of_cmd_vel);
+    void right(double persentage_of_cmd_vel);
     void reset();
     void take_off();
-    void land();
     void hover();
+    void land();
+    void angular(char axis, double persentage_of_cmd_vel);
+    void heightSpeed(double persentage_of_cmd_vel);
+    void setAngular(char axis, double angular);
+    void setLinearVelocity(double xpwm, double ypwm, double zpwm);
+    void setAngularVelocity(double z);
 
-    void calculate_x_coordinations();
-
-    Navdata get_navdata();
-
-    Position get_position();
-    Euler_angle get_euler_angles();
+    Position getPosition();
+    EulerAngle getEulerAngles();
 
 private:
 
     int sign(double value);
 
-    Euler_angle to_euler_angle();
+    EulerAngle toEulerAngle();
 
-    void update_odometry();
-    void get_odometry(const nav_msgs::Odometry & msg);
+    void upDateOdometry();
+    void goal_callback(const nav_msgs::Odometry & msg);
 
     ros::NodeHandle nh;
     ros::Subscriber gr_sub;
@@ -82,3 +78,4 @@ private:
 };
 
 #endif /* DRONE_H_ */
+
