@@ -86,31 +86,44 @@ this line( we added roscpp, for example):
 ## Описание класса Drone
 
 Для управления квадрокоптером под ROS'ом был написан простой класс управления - Drone. В данном разделе будет его краткое описание.
-+ void Drone::Drone()  
++ **void Drone::Drone()**  
 Конструктор инициализирует ROS, назначает топики, с которых будет брать данный и в которые будет посылать команды
-+ void Drone::~Drone()  
-Деструктор, который запускает закрытие процесса ROS и ждёт его завершения.
-+ void Drone::yaw_rotate(double persentage_of_cmd_vel)  
+
++ **void Drone::~Drone()**   
+Деструктор, который запускает закрытие процесса ROS и ждёт его завершения
+
++ **void Drone::yaw_rotate(double persentage_of_cmd_vel)**   
 Поворачивает квадрокоптер относительно оси z (рысканья), на вход функции подается процент от максимальной скорости вращения
-+ void Drone::linear_x(double persentage_of_cmd_vel)  
+
++ **void Drone::linear_x(double persentage_of_cmd_vel)**     
 Осуществляет движение квадрокоптера по оси x. На вход функции подается процент от максимальной скорости движения
-+ void Drone::linear_y(double persentage_of_cmd_vel)
+
++ **void Drone::linear_y(double persentage_of_cmd_vel)**   
 Осуществляет движение квадрокоптера по оси x. На вход функции подается процент от максимальной скорости движения
-+ void Drone::reset()  
+
++ **void Drone::reset()**     
 Команда осуществляет рестарт квадрокоптера
-+ void Drone::take_off()  
+
++ **void Drone::take_off()**     
 Команда осуществляет взлёт квадрокоптера
-+ void Drone::land()  
+
++ **void Drone::land()**     
 Команда осуществляет посадку квадрокоптера
-+ void Drone::hover()  
+
++ **void Drone::hover()**     
 Заставляет квадрокоптер зависнуть в заданной точке
-+ Drone::Euler_angle Drone::to_euler_angle()  
+
++ **Drone::Euler_angle Drone::to_euler_angle()**     
 Переводит кватернион в углы Эйлера и возвращает в виде структуры Drone::Euler_angle
-+ Drone::Position Drone::get_position()  
+
++ **Drone::Position Drone::get_position()**     
 Возвращает текущие координаты по осям XYZ в виде структуры Drone::Position
-+ void Drone::get_odometry(const nav_msgs::Odometry & msg)  
+
++ **void Drone::get_odometry(const nav_msgs::Odometry & msg)**       
 Данная функция возвращает одометрию квадрокоптера
-+ double Drone::gyro_calibration()  
+
++ **double Drone::gyro_calibration()**     
 Данная функция производит калибровку квадрокоптера
-+ Navdata Drone::get_navdata()  
+
++ **Navdata Drone::get_navdata()**     
 Данная функция возвращает данные Navdata в виде структуры Navdata
