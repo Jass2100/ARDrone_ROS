@@ -49,7 +49,7 @@ void test_move2point(double goal_x , double goal_y) {
     }
     else {
 
-        //cout << "drone has already taken off" << endl;
+        cout << "drone has already taken off" << endl;
 
     }
 
@@ -134,23 +134,23 @@ void test_2_move2point(double goal_x_coordinate, double goal_y_coordinate) {
     }
     else {
 
-        //cout << "drone has already taken off" << endl;
+        cout << "drone has already taken off" << endl;
 
     }
 
-    // coordinates and yaw angle calibration( get offset)
-    //cout << "" << endl;
-    //cout << "cordinates and yaw calibration..." << endl;
-    //cout << "__________________________________" << endl;
-    //cout << "" << endl;
+    coordinates and yaw angle calibration( get offset)
+    cout << "" << endl;
+    cout << "cordinates and yaw calibration..." << endl;
+    cout << "__________________________________" << endl;
+    cout << "" << endl;
     yaw_offset = drone.get_euler_angles().yaw;
     x_coordinate_offset = drone.get_position().x_coord;
     y_coordinate_offset = drone.get_position().y_coord;
-    //cout << "yaw offset: " << yaw_offset << endl;
-    //cout << "x offset: " << x_coordinate_offset << endl; 
-    //cout << "y offset: " << y_coordinate_offset << endl;
-    //cout << "__________________________________" << endl;
-    //cout << "" << endl;
+    cout << "yaw offset: " << yaw_offset << endl;
+    cout << "x offset: " << x_coordinate_offset << endl; 
+    cout << "y offset: " << y_coordinate_offset << endl;
+    cout << "__________________________________" << endl;
+    cout << "" << endl;
 
     while(!in_a_neighborhood_of_the_point) {
 
