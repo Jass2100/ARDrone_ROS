@@ -341,8 +341,7 @@ void test_2_move2point(double goal_x_coordinate, double goal_y_coordinate) {
         double delta_y = goal_y_coordinate - current_y_coordinate;
         distance_error = sqrt(delta_x * delta_x + delta_y * delta_y);
 
-        // calculation of signal distribution
-        theta = atan2(delta_y, delta_x) * rad2deg;
+        // calculation of signal distributio        theta = atan2(delta_y, delta_x) * rad2deg;
         phi = theta - current_yaw;
         x_linear_velocity_component = max_velocity * cos(phi * deg2rad);
         y_linear_velocity_component = max_velocity * cos((phi - 90) * deg2rad);
@@ -407,6 +406,6 @@ void test_2_move2point(double goal_x_coordinate, double goal_y_coordinate) {
 
     }
 
-    //cout << "reach the destination x: " << goal_x_coordinate << "; y: " << goal_y_coordinate << endl;
+    cout << "reach the destination x: " << goal_x_coordinate << "; y: " << goal_y_coordinate << endl;
 
 }
