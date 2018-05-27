@@ -7,6 +7,7 @@ using namespace std;
 int sign(double value);
 void test_move2point(double goal_x , double goal_y);
 void test_2_move2point(double goal_x_coordinate, double goal_y_coordinate);
+void make_square(double side_of_the_square_in_meters);
 double start_time = 0;
 
 int main(int argc, char **argv){
@@ -409,3 +410,17 @@ void test_2_move2point(double goal_x_coordinate, double goal_y_coordinate) {
     cout << "reach the destination x: " << goal_x_coordinate << "; y: " << goal_y_coordinate << endl;
 
 }
+
+
+void make_square(double side_of_the_square_in_meters) {
+    
+    test_2_move2point(side_of_the_square_in_meters 0);
+    cout << "reach the destination x: " << side_of_the_square_in_meters << "; y: " << 0 << endl;
+    test_2_move2point(0 side_of_the_square_in_meters);
+    cout << "reach the destination x: " << side_of_the_square_in_meters << "; y: " << side_of_the_square_in_meters << endl;
+    test_2_move2point(-side_of_the_square_in_meters 0);
+    cout << "reach the destination x: " << side_of_the_square_in_meters << "; y: " << 0 << endl;
+    test_2_move2point(0 -side_of_the_square_in_meters);
+    cout << "reach the destination x: " << 0 << "; y: " << 0 << endl;
+    
+}    
