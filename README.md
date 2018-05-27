@@ -152,3 +152,5 @@ this line( we added roscpp, for example):
   ![](https://github.com/Jass2100/ARDrone_ROS/blob/master/pics/formula_4.jpg "")     
   Всё это позволяет квадрокоптеру достичь своей цели, но пока лишь в отсутствии препятствий.   
 ### Использование скоросте по каждым из осям (омни привод)   
+Опишем математическую модель    
+![](https://github.com/Jass2100/ARDrone_ROS/blob/master/pics/formula_5.jpg "")    
